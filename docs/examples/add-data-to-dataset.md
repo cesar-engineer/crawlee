@@ -3,28 +3,115 @@ id: add-data-to-dataset
 title: Add data to dataset
 ---
 
-This example saves data to the default dataset. If the dataset doesn't exist, it will be created. You can save data to custom datasets by passing `dataset_id` or `dataset_name` to `push_data`.
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+This example demonstrates how to store extracted data into datasets using the `context.push_data()` helper function. If the specified dataset does not already exist, it will be created automatically. Additionally, you can save data to custom datasets by providing `dataset_id` or `dataset_name` parameters to the `push_data` method.
+
+<Tabs groupId="main">
+<TabItem value="BeautifulSoupCrawler" label="BeautifulSoupCrawler">
 
 ```python
+import asyncio
+
 from crawlee.beautifulsoup_crawler import BeautifulSoupCrawler, BeautifulSoupCrawlingContext
 
-crawler = BeautifulSoupCrawler()
-
-# Function called for each URL
-@crawler.router.default_handler
-async def request_handler(context: BeautifulSoupCrawlingContext) -> None:
-    await context.push_data({
-        "url": context.request.url,
-        "html": context.http_response.text(),
-    })
 
 async def main() -> None:
-    # Run the crawler
-    await crawler.run([
-        'http://www.example.com/page-1',
-        'http://www.example.com/page-2',
-        'http://www.example.com/page-3',
-    ])
+    crawler = BeautifulSoupCrawler()
 
-asyncio.run(main())
+    # Define the default request handler, which will be called for every request.
+    @crawler.router.default_handler
+    async def request_handler(context: BeautifulSoupCrawlingContext) -> None:
+        context.log.info(f'Processing {context.request.url} ...')
+
+        # Extract data from the page.
+        data = {
+            'url': context.request.url,
+            'title': context.soup.title.string,
+            'html': str(context.soup)[:1000],
+        }
+
+        # Push the extracted data to the default dataset.
+        await context.push_data(data)
+
+    # Run the crawler with the initial list of requests.
+    await crawler.run(
+        [
+            'https://crawlee.dev',
+            'https://apify.com',
+            'https://example.com',
+        ]
+    )
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
+</TabItem>
+<TabItem value="PlaywrightCrawler" label="PlaywrightCrawler">
+
+```python
+import asyncio
+
+from crawlee.playwright_crawler import PlaywrightCrawler, PlaywrightCrawlingContext
+
+
+async def main() -> None:
+    crawler = PlaywrightCrawler()
+
+    # Define the default request handler, which will be called for every request.
+    @crawler.router.default_handler
+    async def request_handler(context: PlaywrightCrawlingContext) -> None:
+        context.log.info(f'Processing {context.request.url} ...')
+
+        # Extract data from the page.
+        data = {
+            'url': context.request.url,
+            'title': await context.page.title(),
+            'html': str(await context.page.content())[:1000],
+        }
+
+        # Push the extracted data to the default dataset.
+        await context.push_data(data)
+
+    # Run the crawler with the initial list of requests.
+    await crawler.run(
+        [
+            'https://crawlee.dev',
+            'https://apify.com',
+            'https://example.com',
+        ]
+    )
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
+</TabItem>
+</Tabs>
+
+Each item in the dataset will be stored in its own file within the following directory:
+
+```text
+{PROJECT_FOLDER}/storage/datasets/default/
+```
+
+For more control, you can also open a dataset manually using the asynchronous constructor `Dataset.open()` and interact with it directly:
+
+```python
+from crawlee.storages import Dataset
+
+# ...
+
+async def main() -> None:
+    # Open dataset manually using asynchronous constructor open().
+    dataset = await Dataset.open()
+
+    # Interact with dataset directly.
+    await dataset.push_data({'key': 'value'})
+
+# ...
 ```
