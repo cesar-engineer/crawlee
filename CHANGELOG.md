@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - Prevent list modification during iteration in BrowserPool ([#1703](https://github.com/apify/crawlee-python/pull/1703)) ([70309d9](https://github.com/apify/crawlee-python/commit/70309d9bf568d268a26b3ba6392be2b6ff284c65)) by [@vdusek](https://github.com/vdusek)
+- Fix ` max_requests_per_crawl` excluding failed requests ([#1766](https://github.com/apify/crawlee-python/pull/1766)) ([d6bb0b4](https://github.com/apify/crawlee-python/commit/d6bb0b4a9dc5dd6668d076fbfa1b5e748deaee0d)) by [@Pijukatel](https://github.com/Pijukatel), closes [#1765](https://github.com/apify/crawlee-python/issues/1765)
 
 
 <!-- git-cliff-unreleased-end -->
